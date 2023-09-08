@@ -1,7 +1,7 @@
 import { describe, test, expect, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup} from '@testing-library/react';
 import { RecoilRoot } from 'recoil';
-import Vox from './Vox';
+import Vox from './vox';
 import '@testing-library/jest-dom';
 
 describe('Vox Component', () => {

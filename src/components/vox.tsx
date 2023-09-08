@@ -20,7 +20,8 @@ const Vox = () => {
       value: text,
       id: new Date().getTime(),
       checked: false,
-      deleted: false
+      deleted: false,
+      createdAt: new Date()
     };
 
     setTodos([newTodo, ...todos]);
@@ -95,6 +96,7 @@ const Vox = () => {
               value={todo.value}
               onChange={(e) => handleEdit(todo.id, e.target.value)}
             />
+            <span> (作成日: {todo.createdAt.toLocaleDateString()}) </span>
             <button onClick={() => handleDelete(todo.id, !todo.deleted)}>
              削除
             </button>
