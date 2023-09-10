@@ -5,7 +5,7 @@ import { RecoilRoot } from 'recoil';
 import TodoList from './TodoList';
 
 
-describe('Vox Component', () => {
+describe('TodoList Component', () => {
 
   afterEach(cleanup);
 
