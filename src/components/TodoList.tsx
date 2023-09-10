@@ -1,99 +1,107 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useRecoilState } from 'recoil';
-import { todoListState, TodoItem } from '../state/todoState';
+import { Todo, Filter } from './types';
+import { todoListState, todoFilterState } from './state';
 
-const TodoList: React.FC = () => {
-  const [todoList, setTodoList] = useRecoilState(todoListState);
-  const [filter, setFilter] = useState('all'); 
-  const [title, setTitle] = useState('');
-  const [error, setError] = useState<string | null>(null); 
+const TodoList = () => {
+  const [text, setText] = React.useState('');
+  const [error, setError] = React.useState<string | null>(null);
+  const [todos, setTodos] = useRecoilState(todoListState);
+  const [filter, setFilter] = useRecoilState(todoFilterState);
 
-  const filteredTodos = todoList.filter((todo) => {
-    switch (filter) {
-      case 'completed': return todo.isCompleted;
-      case 'uncompleted': return !todo.isCompleted;
-      case 'all': return true;
-      default: 
-        setError("Invalid filter selected.");
-        return false;
-    }
-  });
-
-  const addTodo = () => {
-    if (!title.trim()) {
+  const handleSubmit = () => {
+    if (!text) {
       setError("Title cannot be empty.");
       return;
     }
-    const newTodo: TodoItem = {
-      id: Date.now(),
-      title,
-      createdAt: new Date(),
-      isCompleted: false,
+
+    const newTodo: Todo = {
+      value: text,
+      id: new Date().getTime(),
+      checked: false,
+      deleted: false,
+      createdAt: new Date()
     };
-    setTodoList([...todoList, newTodo]);
-    setTitle('');
 
+    setTodos([newTodo, ...todos]);
+    setText('');
+    setError('');
   };
 
-  const toggleTodo = (id: number) => {
-    if (!todoList.some(todo => todo.id === id)) {
-      setError("Invalid todo ID.");
-      return;
+  const handleEdit = (id: number, value: string) => {
+    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, value } : todo)));
+  };
+
+  const handleCheck = (id: number, checked: boolean) => {
+    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
+  };
+
+  const handleDelete = (id: number) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
+
+  const handleSort = (newFilter: Filter) => {
+    setFilter(newFilter);
+  };
+
+  const filteredTodos = todos.filter((todo) => {
+    switch (filter) {
+      case 'all':
+        return true;
+      case 'checked':
+        return todo.checked;
+      case 'unchecked':
+        return !todo.checked;
     }
-    setTodoList(
-      todoList.map((todo) =>
-        todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
-      )
-    );
-  };
-
-  const deleteTodo = (id: number) => {
-    if (!todoList.some(todo => todo.id === id)) {
-      setError("Invalid todo ID.");
-      return;
-    }
-    setTodoList(todoList.filter((todo) => todo.id !== id));
-  };
+  });
 
   return (
     <div>
       {error && <div style={{ color: 'red' }}>{error}</div>}
       <div>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Add new todo"
-        />
-        <button onClick={addTodo}>Add</button>
-      </div>
-      <div>
-        Filter:
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All</option>
-          <option value="completed">Completed</option>
-          <option value="uncompleted">Uncompleted</option>
+        <select defaultValue="all" onChange={(e) => handleSort(e.target.value as Filter)}>
+          <option value="all">すべてのタスク</option>
+          <option value="checked">完了したタスク</option>
+          <option value="unchecked">未完了のタスク</option>
         </select>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}>
+          <input
+            type="text"
+            value={text}
+            disabled={filter === 'checked'}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <input
+            type="submit"
+            value="追加"
+            disabled={filter === 'checked'}
+          />
+        </form>
+        <ul>
+          {filteredTodos.map((todo) => (
+            <li key={todo.id}>
+              <input
+                type="checkbox"
+                checked={todo.checked}
+                onChange={() => handleCheck(todo.id, !todo.checked)}
+              />
+              <input
+                type="text"
+                disabled={todo.checked}
+                value={todo.value}
+                onChange={(e) => handleEdit(todo.id, e.target.value)}
+              />
+              <span> (作成日: {todo.createdAt.toLocaleDateString()}) </span>
+              <button onClick={() => handleDelete(todo.id)}>
+                削除
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul>
-        {filteredTodos.map((todo) => (
-          <li key={todo.id}>
-            <span
-              style={{
-                textDecoration: todo.isCompleted ? 'line-through' : 'none',
-              }}
-            >
-              {todo.title}
-            </span>
-            <span> (Created at: {todo.createdAt.toLocaleDateString()}) </span>
-            <span> (Completed: {todo.isCompleted ? "Yes" : "No"}) </span>
-
-            <button onClick={() => toggleTodo(todo.id)}>
-              {todo.isCompleted ? 'Undo' : 'Complete'}
-            </button>
-            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 };

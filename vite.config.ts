@@ -6,6 +6,6 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    include: ['**/src/components/vox.test.tsx']
+    include: ['**/src/components/TodoList.test.tsx']
   },
 })

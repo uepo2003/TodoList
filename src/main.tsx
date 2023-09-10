@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { RecoilRoot } from 'recoil';
 // import TodoList from './components/TodoList';
-import Vox from './components/vox';
+import TodoList from './components/TodoList';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -11,7 +11,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <RecoilRoot>
-      <Vox />
+      <TodoList />
     </RecoilRoot>
   </React.StrictMode>
 );

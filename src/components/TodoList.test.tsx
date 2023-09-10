@@ -1,73 +1,87 @@
-import { describe, test, expect, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import TodoList from './TodoList';
-import { RecoilRoot } from 'recoil';
 import '@testing-library/jest-dom';
+import { describe, test, expect, afterEach } from 'vitest'
+import { render, screen, fireEvent, cleanup} from '@testing-library/react';
+import { RecoilRoot } from 'recoil';
+import TodoList from './TodoList';
 
-describe('<TodoList />', () => {
-  const setup = () => {
+
+describe('Vox Component', () => {
+
+  afterEach(cleanup);
+
+  test('should be able to add a TODO item', () => {
     render(
       <RecoilRoot>
         <TodoList />
       </RecoilRoot>
     );
-    const inputElement = screen.getByPlaceholderText('Add new todo');
-    const addButton = screen.getByText('Add');
-    return { inputElement, addButton };
-  };
- 
-  test('should add a TODO item', () => {
-    const { inputElement, addButton } = setup();
 
-    fireEvent.change(inputElement, { target: { value: 'Test Todo' } });
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'New task' } });
+
+    const addButton = screen.getByText('追加');
     fireEvent.click(addButton);
 
-    expect(screen.getByText('Test Todo')).not.toBeNull();
-    afterEach(cleanup);
+    const inputElement = screen.getByDisplayValue('New task');
+    expect(inputElement).not.toBeNull();
   });
 
-  test('should delete a TODO item', () => {
-    const { inputElement, addButton } = setup();
+  test('should be able to delete a TODO item', () => {
+    render(
+      <RecoilRoot>
+        <TodoList />
+      </RecoilRoot>
+    );
 
-    fireEvent.change(inputElement, { target: { value: 'Test' } });
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Task to be deleted' } });
+
+    const addButton = screen.getByText('追加');
     fireEvent.click(addButton);
 
-    const deleteButton = screen.getByText('Delete');
+    const deleteButton = screen.getByText('削除');
     fireEvent.click(deleteButton);
 
-    expect(screen.queryByText('Test')).toBeNull();
-    afterEach(cleanup);
+    const inputElement = screen.queryByDisplayValue('Task to be deleted');
+    expect(inputElement).toBeNull();
   });
 
-  test('should mark a TODO item as complete', () => {
-    const { inputElement, addButton } = setup();
+  test('should be able to mark a TODO item as complete', () => {
+    render(
+      <RecoilRoot>
+        <TodoList />
+      </RecoilRoot>
+    );
 
-    fireEvent.change(inputElement, { target: { value: 'Test Todo' } });
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Task to be checked' } });
+
+    const addButton = screen.getByText('追加');
     fireEvent.click(addButton);
 
-    const completeButton = screen.getByText('Complete');
-    fireEvent.click(completeButton);
-
-    expect(screen.getByText('Test Todo')).not.toBeNull();
-    afterEach(cleanup);
+    const checkbox = screen.getByRole('checkbox', { name: '' }) as HTMLInputElement;
+    fireEvent.click(checkbox);
+    expect(checkbox.checked).toBe(true);
   });
 
-  test('should filter completed tasks', () => {
-    const { inputElement, addButton } = setup();
+  test('should be able to filter TODO items', () => {
+    render(
+      <RecoilRoot>
+        <TodoList />
+      </RecoilRoot>
+    );
 
-    fireEvent.change(inputElement, { target: { value: 'Test Todo 1' } });
-    fireEvent.click(addButton);
+    const input = screen.getByRole('textbox');
 
-    fireEvent.change(inputElement, { target: { value: 'Test Todo 2' } });
-    fireEvent.click(addButton);
+    fireEvent.change(input, { target: { value: 'Completed task' } });
+    fireEvent.click(screen.getByText('追加'));
+    fireEvent.click(screen.getByRole('checkbox', { name: '' }));
 
-    const completeButton = screen.getByText('Complete');
-    fireEvent.click(completeButton);
+    fireEvent.change(input, { target: { value: 'Uncompleted task' } });
+    fireEvent.click(screen.getByText('追加'));
 
-    const selectElement = screen.getByText('Filter:').nextSibling as HTMLElement;
-    fireEvent.change(selectElement, { target: { value: 'completed' } });
-
-    expect(screen.getByText('Test Todo 1')).not.toBeNull();
-    expect(screen.queryByText('Test Todo 2')).toBeNull();
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'checked' } });
+    expect(screen.getByDisplayValue('Completed task')).not.toBeNull();
+    expect(screen.queryByText('Uncompleted task')).toBeNull();
   });
 });
